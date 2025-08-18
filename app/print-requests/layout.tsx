@@ -6,11 +6,11 @@ import { useEffect } from 'react';
 import { Sidebar } from '@/components/layout/Sidebar';
 import { Navbar } from '@/components/layout/Navbar';
 
-interface DashboardLayoutProps {
+interface PrintRequestsLayoutProps {
   children: React.ReactNode;
 }
 
-export default function DashboardLayout({ children }: DashboardLayoutProps) {
+export default function PrintRequestsLayout({ children }: PrintRequestsLayoutProps) {
   const { user, loading } = useAuth();
   const router = useRouter();
 

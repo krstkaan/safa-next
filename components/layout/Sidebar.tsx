@@ -14,28 +14,49 @@ import {
   Menu,
   X,
   Printer,
+  Book,
 } from 'lucide-react';
 
-const sidebarItems = [
+const sidebarSections = [
   {
-    title: 'Dashboard',
-    href: '/dashboard',
-    icon: Home,
+    title: 'Ana Sayfa',
+    items: [
+      {
+        title: 'Dashboard',
+        href: '/',
+        icon: Home,
+      },
+    ],
   },
   {
-    title: 'Fotokopi İstekleri',
-    href: '/dashboard/print-requests',
-    icon: Printer,
+    title: 'Fotokopi Yönetimi',
+    items: [
+      {
+        title: 'Fotokopi İstekleri',
+        href: '/print-requests',
+        icon: Printer,
+      },
+      {
+        title: 'Talep Edenler',
+        href: '/requesters',
+        icon: Users,
+      },
+      {
+        title: 'Onaylayanlar',
+        href: '/approvers',
+        icon: UserCheck,
+      },
+    ],
   },
   {
-    title: 'Talep Edenler',
-    href: '/dashboard/requesters',
-    icon: Users,
-  },
-  {
-    title: 'Onaylayanlar',
-    href: '/dashboard/approvers',
-    icon: UserCheck,
+    title: 'Kitap Yönetimi',
+    items: [
+      {
+        title: 'Kitap Yönetimi',
+        href: '/books',
+        icon: Book,
+      },
+    ],
   },
 ];
 
@@ -91,27 +112,39 @@ export function Sidebar({ className }: SidebarProps) {
         </div>
 
         <div className="flex-1 overflow-y-auto">
-          <nav className="p-4 space-y-2">
-            {sidebarItems.map((item) => {
-              const Icon = item.icon;
-              const isActive = pathname === item.href;
+          <nav className="p-4 space-y-6">
+            {sidebarSections.map((section, sectionIndex) => (
+              <div key={section.title}>
+                <h3 className="mb-2 px-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">
+                  {section.title}
+                </h3>
+                <div className="space-y-1">
+                  {section.items.map((item) => {
+                    const Icon = item.icon;
+                    const isActive = pathname === item.href;
 
-              return (
-                <Link key={item.href} href={item.href} onClick={() => setIsMobileOpen(false)}>
-                  <div
-                    className={cn(
-                      'flex items-center space-x-3 rounded-lg px-3 py-2 text-sm font-medium transition-colors',
-                      isActive
-                        ? 'bg-blue-100 text-blue-700'
-                        : 'text-gray-700 hover:bg-gray-100 hover:text-gray-900'
-                    )}
-                  >
-                    <Icon className="h-5 w-5" />
-                    <span>{item.title}</span>
-                  </div>
-                </Link>
-              );
-            })}
+                    return (
+                      <Link key={item.href} href={item.href} onClick={() => setIsMobileOpen(false)}>
+                        <div
+                          className={cn(
+                            'flex items-center space-x-3 rounded-lg px-3 py-2 text-sm font-medium transition-colors',
+                            isActive
+                              ? 'bg-blue-100 text-blue-700'
+                              : 'text-gray-700 hover:bg-gray-100 hover:text-gray-900'
+                          )}
+                        >
+                          <Icon className="h-5 w-5" />
+                          <span>{item.title}</span>
+                        </div>
+                      </Link>
+                    );
+                  })}
+                </div>
+                {sectionIndex < sidebarSections.length - 1 && (
+                  <Separator className="mt-4" />
+                )}
+              </div>
+            ))}
           </nav>
         </div>
       </div>

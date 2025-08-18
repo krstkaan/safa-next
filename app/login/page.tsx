@@ -57,7 +57,7 @@ export default function LoginPage() {
     try {
       await login(data.email, data.password);
       toast.success('Başarıyla giriş yapıldı!');
-      router.push('/dashboard');
+      router.push('/');
     } catch (error: any) {
       toast.error(error.response?.data?.message || 'Giriş yapılırken bir hata oluştu');
     } finally {
@@ -70,7 +70,7 @@ export default function LoginPage() {
     try {
       await register(data.name, data.email, data.password, data.password_confirmation);
       toast.success('Başarıyla kayıt olundu!');
-      router.push('/dashboard');
+      router.push('/');
     } catch (error: any) {
       toast.error(error.response?.data?.message || 'Kayıt olurken bir hata oluştu');
     } finally {
