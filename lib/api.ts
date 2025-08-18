@@ -60,6 +60,21 @@ export interface ApiResponse<T> {
   message: string;
 }
 
+export interface PaginationInfo {
+  current_page: number;
+  per_page: number;
+  total: number;
+  total_pages: number;
+  has_next_page: boolean;
+}
+
+export interface PaginatedApiResponse<T> {
+  status: string;
+  data: T[];
+  message: string;
+  pagination: PaginationInfo;
+}
+
 export interface ApiError {
   status: string;
   message: string;
@@ -99,8 +114,8 @@ export const authAPI = {
 
 // Print Requests APIs
 export const printRequestsAPI = {
-  getAll: async () => {
-    const response = await api.get<ApiResponse<PrintRequest[]>>('/print-requests');
+  getAll: async (page: number = 1, limit: number = 10) => {
+    const response = await api.get<PaginatedApiResponse<PrintRequest>>(`/print-requests?page=${page}&limit=${limit}`);
     return response.data;
   },
 
@@ -127,7 +142,12 @@ export const printRequestsAPI = {
 
 // Requesters APIs
 export const requestersAPI = {
-  getAll: async () => {
+  getAll: async (page: number = 1, limit: number = 10) => {
+    const response = await api.get<PaginatedApiResponse<Requester>>(`/requesters?page=${page}&limit=${limit}`);
+    return response.data;
+  },
+
+  getAllUnpaginated: async () => {
     const response = await api.get<ApiResponse<Requester[]>>('/requesters');
     return response.data;
   },
@@ -155,7 +175,12 @@ export const requestersAPI = {
 
 // Approvers APIs
 export const approversAPI = {
-  getAll: async () => {
+  getAll: async (page: number = 1, limit: number = 10) => {
+    const response = await api.get<PaginatedApiResponse<Approver>>(`/approvers?page=${page}&limit=${limit}`);
+    return response.data;
+  },
+
+  getAllUnpaginated: async () => {
     const response = await api.get<ApiResponse<Approver[]>>('/approvers');
     return response.data;
   },
