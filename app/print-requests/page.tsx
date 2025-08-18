@@ -22,7 +22,7 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { DataTable, Column } from '@/components/ui/data-table';
-import { printRequestsAPI, requestersAPI, approversAPI, PrintRequest, Requester, Approver, PaginationInfo } from '@/lib/api';
+import { printRequestsAPI, requestersAPI, approversAPI, PrintRequest, Requester, Approver, PaginationInfo, SortParams } from '@/lib/api';
 import { Edit, Trash2 } from 'lucide-react';
 import { toast } from 'sonner';
 
@@ -46,6 +46,10 @@ export default function PrintRequestsPage() {
   const [pagination, setPagination] = useState<PaginationInfo | null>(null);
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage, setItemsPerPage] = useState(10);
+  const [sortParams, setSortParams] = useState<SortParams>({
+    sort_by: 'id',
+    sort_direction: 'desc'
+  });
 
   const form = useForm<RequestForm>({
     resolver: zodResolver(requestSchema),
@@ -58,10 +62,10 @@ export default function PrintRequestsPage() {
     },
   });
 
-  const fetchData = async (page: number = currentPage) => {
+  const fetchData = async (page: number = currentPage, sort: SortParams = sortParams) => {
     try {
       const [requestsResponse, requestersResponse, approversResponse] = await Promise.all([
-        printRequestsAPI.getAll(page, itemsPerPage),
+        printRequestsAPI.getAll(page, itemsPerPage, sort),
         requestersAPI.getAllUnpaginated(),
         approversAPI.getAllUnpaginated(),
       ]);
@@ -83,14 +87,19 @@ export default function PrintRequestsPage() {
 
   useEffect(() => {
     if (currentPage > 1 || pagination) {
-      fetchData(currentPage);
+      fetchData(currentPage, sortParams);
     }
   }, [currentPage]);
 
   useEffect(() => {
     setCurrentPage(1);
-    fetchData(1);
+    fetchData(1, sortParams);
   }, [itemsPerPage]);
+
+  useEffect(() => {
+    setCurrentPage(1);
+    fetchData(1, sortParams);
+  }, [sortParams]);
 
   const onSubmit = async (data: RequestForm) => {
     try {
@@ -121,6 +130,11 @@ export default function PrintRequestsPage() {
 
   const handlePageChange = (newPage: number) => {
     setCurrentPage(newPage);
+    setLoading(true);
+  };
+
+  const handleSortChange = (newSortParams: SortParams) => {
+    setSortParams(newSortParams);
     setLoading(true);
   };
 
@@ -163,22 +177,36 @@ export default function PrintRequestsPage() {
   // Define columns for the data table
   const columns: Column<PrintRequest>[] = [
     {
+      key: 'id',
+      label: 'ID',
+      sortable: true,
+      sortKey: 'id'
+    },
+    {
       key: 'requester_id',
       label: 'Talep Eden',
+      sortable: true,
+      sortKey: 'requester_id',
       render: (_, row) => row.requester?.name || 'Bilinmiyor'
     },
     {
       key: 'approver_id',
       label: 'Onaylayan',
+      sortable: true,
+      sortKey: 'approver_id',
       render: (_, row) => row.approver?.name || 'Bilinmiyor'
     },
     {
       key: 'color_copies',
       label: 'Renkli Kopya',
+      sortable: true,
+      sortKey: 'color_copies'
     },
     {
       key: 'bw_copies',
       label: 'S/B Kopya',
+      sortable: true,
+      sortKey: 'bw_copies'
     },
     {
       key: 'total_copies',
@@ -192,6 +220,15 @@ export default function PrintRequestsPage() {
     {
       key: 'requested_at',
       label: 'İstek Tarihi',
+      sortable: true,
+      sortKey: 'requested_at',
+      render: (value) => new Date(value).toLocaleDateString('tr-TR')
+    },
+    {
+      key: 'created_at',
+      label: 'Oluşturulma Tarihi',
+      sortable: true,
+      sortKey: 'created_at',
       render: (value) => new Date(value).toLocaleDateString('tr-TR')
     },
     {
@@ -340,6 +377,8 @@ export default function PrintRequestsPage() {
       itemsPerPage={itemsPerPage}
       onPageChange={handlePageChange}
       onItemsPerPageChange={setItemsPerPage}
+      sortParams={sortParams}
+      onSortChange={handleSortChange}
       onAdd={handleNewRequest}
       dialogOpen={dialogOpen}
       onDialogOpenChange={setDialogOpen}

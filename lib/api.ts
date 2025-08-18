@@ -112,10 +112,20 @@ export const authAPI = {
   },
 };
 
+// Sort types
+export interface SortParams {
+  sort_by?: string;
+  sort_direction?: 'asc' | 'desc';
+}
+
 // Print Requests APIs
 export const printRequestsAPI = {
-  getAll: async (page: number = 1, limit: number = 10) => {
-    const response = await api.get<PaginatedApiResponse<PrintRequest>>(`/print-requests?page=${page}&limit=${limit}`);
+  getAll: async (page: number = 1, limit: number = 10, sortParams?: SortParams) => {
+    let url = `/print-requests?page=${page}&limit=${limit}`;
+    if (sortParams?.sort_by) {
+      url += `&sort_by=${sortParams.sort_by}&sort_direction=${sortParams.sort_direction || 'asc'}`;
+    }
+    const response = await api.get<PaginatedApiResponse<PrintRequest>>(url);
     return response.data;
   },
 
@@ -142,8 +152,12 @@ export const printRequestsAPI = {
 
 // Requesters APIs
 export const requestersAPI = {
-  getAll: async (page: number = 1, limit: number = 10) => {
-    const response = await api.get<PaginatedApiResponse<Requester>>(`/requesters?page=${page}&limit=${limit}`);
+  getAll: async (page: number = 1, limit: number = 10, sortParams?: SortParams) => {
+    let url = `/requesters?page=${page}&limit=${limit}`;
+    if (sortParams?.sort_by) {
+      url += `&sort_by=${sortParams.sort_by}&sort_direction=${sortParams.sort_direction || 'asc'}`;
+    }
+    const response = await api.get<PaginatedApiResponse<Requester>>(url);
     return response.data;
   },
 
@@ -175,8 +189,12 @@ export const requestersAPI = {
 
 // Approvers APIs
 export const approversAPI = {
-  getAll: async (page: number = 1, limit: number = 10) => {
-    const response = await api.get<PaginatedApiResponse<Approver>>(`/approvers?page=${page}&limit=${limit}`);
+  getAll: async (page: number = 1, limit: number = 10, sortParams?: SortParams) => {
+    let url = `/approvers?page=${page}&limit=${limit}`;
+    if (sortParams?.sort_by) {
+      url += `&sort_by=${sortParams.sort_by}&sort_direction=${sortParams.sort_direction || 'asc'}`;
+    }
+    const response = await api.get<PaginatedApiResponse<Approver>>(url);
     return response.data;
   },
 

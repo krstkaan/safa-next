@@ -26,14 +26,20 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table';
-import { Plus, Edit, Trash2, ChevronLeft, ChevronRight } from 'lucide-react';
+import { Plus, Edit, Trash2, ChevronLeft, ChevronRight, ArrowUpDown, ArrowUp, ArrowDown } from 'lucide-react';
 
 // Generic types for the data table
 export interface Column<T> {
   key: keyof T | 'actions' | string;
   label: string;
   sortable?: boolean;
+  sortKey?: string; // Backend field name for sorting
   render?: (value: any, row: T) => React.ReactNode;
+}
+
+export interface SortParams {
+  sort_by?: string;
+  sort_direction?: 'asc' | 'desc';
 }
 
 export interface PaginationInfo {
@@ -55,6 +61,10 @@ export interface DataTableProps<T> {
   itemsPerPage: number;
   onPageChange: (page: number) => void;
   onItemsPerPageChange: (itemsPerPage: number) => void;
+  
+  // Sorting
+  sortParams?: SortParams;
+  onSortChange?: (sortParams: SortParams) => void;
   
   // CRUD Operations
   onAdd?: () => void;
@@ -92,6 +102,8 @@ export function DataTable<T extends { id: number | string }>({
   itemsPerPage,
   onPageChange,
   onItemsPerPageChange,
+  sortParams,
+  onSortChange,
   onAdd,
   onEdit,
   onDelete,
@@ -110,6 +122,34 @@ export function DataTable<T extends { id: number | string }>({
 }: DataTableProps<T>) {
   const handlePageChange = (newPage: number) => {
     onPageChange(newPage);
+  };
+
+  const handleSort = (column: Column<T>) => {
+    if (!column.sortable || !onSortChange) return;
+    
+    const sortKey = column.sortKey || String(column.key);
+    const isCurrentSort = sortParams?.sort_by === sortKey;
+    const newDirection = isCurrentSort && sortParams?.sort_direction === 'asc' ? 'desc' : 'asc';
+    
+    onSortChange({
+      sort_by: sortKey,
+      sort_direction: newDirection,
+    });
+  };
+
+  const getSortIcon = (column: Column<T>) => {
+    if (!column.sortable) return null;
+    
+    const sortKey = column.sortKey || String(column.key);
+    const isCurrentSort = sortParams?.sort_by === sortKey;
+    
+    if (!isCurrentSort) {
+      return <ArrowUpDown className="h-4 w-4" />;
+    }
+    
+    return sortParams?.sort_direction === 'asc' ? 
+      <ArrowUp className="h-4 w-4" /> : 
+      <ArrowDown className="h-4 w-4" />;
   };
 
   const renderActionButtons = (item: T) => {
@@ -263,7 +303,20 @@ export function DataTable<T extends { id: number | string }>({
                     <TableRow>
                       {columns.map((column) => (
                         <TableHead key={String(column.key)}>
-                          {column.label}
+                          {column.sortable ? (
+                            <Button
+                              variant="ghost"
+                              className="h-auto p-0 font-semibold hover:bg-transparent"
+                              onClick={() => handleSort(column)}
+                            >
+                              <span className="flex items-center gap-2">
+                                {column.label}
+                                {getSortIcon(column)}
+                              </span>
+                            </Button>
+                          ) : (
+                            column.label
+                          )}
                         </TableHead>
                       ))}
                     </TableRow>

@@ -15,7 +15,7 @@ import {
   FormMessage,
 } from '@/components/ui/form';
 import { DataTable, Column } from '@/components/ui/data-table';
-import { approversAPI, Approver, PaginationInfo } from '@/lib/api';
+import { approversAPI, Approver, PaginationInfo, SortParams } from '@/lib/api';
 import { Edit, Trash2 } from 'lucide-react';
 import { toast } from 'sonner';
 
@@ -33,6 +33,10 @@ export default function ApproversPage() {
   const [pagination, setPagination] = useState<PaginationInfo | null>(null);
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage, setItemsPerPage] = useState(10);
+  const [sortParams, setSortParams] = useState<SortParams>({
+    sort_by: 'id',
+    sort_direction: 'desc'
+  });
 
   const form = useForm<ApproverForm>({
     resolver: zodResolver(approverSchema),
@@ -41,9 +45,9 @@ export default function ApproversPage() {
     },
   });
 
-  const fetchApprovers = async (page: number = currentPage) => {
+  const fetchApprovers = async (page: number = currentPage, sort: SortParams = sortParams) => {
     try {
-      const response = await approversAPI.getAll(page, itemsPerPage);
+      const response = await approversAPI.getAll(page, itemsPerPage, sort);
       setApprovers(response.data);
       setPagination(response.pagination);
     } catch (error) {
@@ -59,14 +63,19 @@ export default function ApproversPage() {
 
   useEffect(() => {
     if (currentPage > 1 || pagination) {
-      fetchApprovers(currentPage);
+      fetchApprovers(currentPage, sortParams);
     }
   }, [currentPage]);
 
   useEffect(() => {
     setCurrentPage(1);
-    fetchApprovers(1);
+    fetchApprovers(1, sortParams);
   }, [itemsPerPage]);
+
+  useEffect(() => {
+    setCurrentPage(1);
+    fetchApprovers(1, sortParams);
+  }, [sortParams]);
 
   const onSubmit = async (data: ApproverForm) => {
     try {
@@ -107,6 +116,16 @@ export default function ApproversPage() {
     }
   };
 
+  const handlePageChange = (newPage: number) => {
+    setCurrentPage(newPage);
+    setLoading(true);
+  };
+
+  const handleSortChange = (newSortParams: SortParams) => {
+    setSortParams(newSortParams);
+    setLoading(true);
+  };
+
   const handleNewApprover = () => {
     setEditingApprover(null);
     form.reset({
@@ -119,14 +138,20 @@ export default function ApproversPage() {
     {
       key: 'id',
       label: 'ID',
+      sortable: true,
+      sortKey: 'id'
     },
     {
       key: 'name',
       label: 'İsim',
+      sortable: true,
+      sortKey: 'name'
     },
     {
       key: 'created_at',
       label: 'Oluşturulma Tarihi',
+      sortable: true,
+      sortKey: 'created_at',
       render: (value) => new Date(value).toLocaleDateString('tr-TR'),
     },
     {
@@ -178,8 +203,10 @@ export default function ApproversPage() {
       pagination={pagination || undefined}
       currentPage={currentPage}
       itemsPerPage={itemsPerPage}
-      onPageChange={setCurrentPage}
+      onPageChange={handlePageChange}
       onItemsPerPageChange={setItemsPerPage}
+      sortParams={sortParams}
+      onSortChange={handleSortChange}
       onAdd={handleNewApprover}
       onEdit={handleEdit}
       onDelete={handleDelete}
