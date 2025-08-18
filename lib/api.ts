@@ -48,6 +48,7 @@ export interface PrintRequest {
   color_copies: number;
   bw_copies: number;
   requested_at: string;
+  description?: string;
   created_at: string;
   updated_at: string;
   requester?: Requester;

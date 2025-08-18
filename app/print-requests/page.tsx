@@ -32,6 +32,7 @@ const requestSchema = z.object({
   color_copies: z.string().min(1, 'Renkli kopya sayısı gereklidir'),
   bw_copies: z.string().min(1, 'Siyah-beyaz kopya sayısı gereklidir'),
   requested_at: z.string().min(1, 'İstek tarihi gereklidir'),
+  description: z.string().optional(),
 });
 
 type RequestForm = z.infer<typeof requestSchema>;
@@ -59,6 +60,7 @@ export default function PrintRequestsPage() {
       color_copies: '',
       bw_copies: '',
       requested_at: new Date().toISOString().slice(0, 16),
+      description: '',
     },
   });
 
@@ -109,6 +111,7 @@ export default function PrintRequestsPage() {
         color_copies: Number(data.color_copies),
         bw_copies: Number(data.bw_copies),
         requested_at: data.requested_at,
+        description: data.description,
       };
 
       if (editingRequest) {
@@ -146,6 +149,7 @@ export default function PrintRequestsPage() {
       color_copies: request.color_copies.toString(),
       bw_copies: request.bw_copies.toString(),
       requested_at: new Date(request.requested_at).toISOString().slice(0, 16),
+      description: request.description || '',
     });
     setDialogOpen(true);
   };
@@ -170,6 +174,7 @@ export default function PrintRequestsPage() {
       color_copies: '',
       bw_copies: '',
       requested_at: new Date().toISOString().slice(0, 16),
+      description: '',
     });
     setDialogOpen(true);
   };
@@ -207,6 +212,11 @@ export default function PrintRequestsPage() {
       label: 'S/B Kopya',
       sortable: true,
       sortKey: 'bw_copies'
+    },
+    {
+      key: 'description',
+      label: 'Açıklama',
+      render: (value) => value || '-'
     },
     {
       key: 'total_copies',
@@ -323,6 +333,19 @@ export default function PrintRequestsPage() {
               <FormLabel>İstek Tarihi</FormLabel>
               <FormControl>
                 <Input type="datetime-local" {...field} />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+        <FormField
+          control={form.control}
+          name="description"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Açıklama (Opsiyonel)</FormLabel>
+              <FormControl>
+                <Input placeholder="İstek açıklaması..." {...field} />
               </FormControl>
               <FormMessage />
             </FormItem>
