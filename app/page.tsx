@@ -47,12 +47,12 @@ export default function HomePage() {
           const requests = requestsResponse.data;
           const totalCopies = requests.reduce((sum, req) => sum + req.color_copies + req.bw_copies, 0);
 
-          setStats({
-            totalRequests: requests.length,
+            setStats({
+            totalRequests: requestsResponse.pagination.total,
             totalRequesters: requestersResponse.data.length,
             totalApprovers: approversResponse.data.length,
             totalCopies,
-          });
+            });
 
           // Son 5 isteği göster
           setRecentRequests(requests.slice(-5).reverse());
