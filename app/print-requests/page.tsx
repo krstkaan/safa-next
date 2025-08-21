@@ -505,10 +505,20 @@ export default function PrintRequestsPage() {
 
   const customActions = (request: PrintRequest) => (
     <div className="flex space-x-2">
-      <Button variant="outline" size="sm" onClick={() => handleEdit(request)}>
+      <Button
+        variant="outline"
+        size="sm"
+        onClick={() => handleEdit(request)}
+        style={{ color: "#2563eb", borderColor: "#2563eb" }} // blue
+      >
         <Edit className="h-4 w-4" />
       </Button>
-      <Button variant="outline" size="sm" onClick={() => handleDelete(request)}>
+      <Button
+        variant="outline"
+        size="sm"
+        onClick={() => handleDelete(request)}
+        style={{ color: "#dc2626", borderColor: "#dc2626" }} // red
+      >
         <Trash2 className="h-4 w-4" />
       </Button>
     </div>
