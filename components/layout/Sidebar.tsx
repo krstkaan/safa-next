@@ -46,6 +46,11 @@ const sidebarSections = [
         href: '/approvers',
         icon: UserCheck,
       },
+      {
+        title: 'Raporlar',
+        href: '/print-requests-reports',
+        icon: FileText,
+      },
     ],
   },
   {

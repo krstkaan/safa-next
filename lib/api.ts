@@ -175,6 +175,81 @@ export const printRequestsAPI = {
     const response = await api.delete<ApiResponse<null>>(`/print-requests/${id}`)
     return response.data
   },
+
+  getReport: async (start_date: string, end_date: string) => {
+    const response = await api.get(
+      `/print-requests/export/by-requester?start_date=${start_date}&end_date=${end_date}`,
+      {
+        responseType: 'blob', // Excel dosyası için blob response
+      }
+    )
+    
+    // Backend'den gelen dosya adını header'dan al (eğer varsa), yoksa varsayılan ad oluştur
+    const contentDisposition = response.headers['content-disposition'] || response.headers['Content-Disposition']
+    let fileName = `fotokopi_raporu_${start_date}_${end_date}.xlsx`
+    
+    if (contentDisposition) {
+      const fileNameMatch = contentDisposition.match(/filename="(.+)"/) || 
+                           contentDisposition.match(/filename\*=UTF-8''(.+)/)
+      if (fileNameMatch) {
+        fileName = decodeURIComponent(fileNameMatch[1])
+      }
+    }
+    
+    // Blob'u indirilebilir dosya olarak işle
+    const url = window.URL.createObjectURL(new Blob([response.data], {
+      type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+    }))
+    const link = document.createElement('a')
+    link.href = url
+    link.setAttribute('download', fileName)
+    document.body.appendChild(link)
+    link.click()
+    link.remove()
+    window.URL.revokeObjectURL(url)
+    
+    return response.data
+  },
+
+  getComparisonReport: async (
+    first_start_date: string, 
+    first_end_date: string, 
+    second_start_date: string, 
+    second_end_date: string
+  ) => {
+    const response = await api.get(
+      `/print-requests/export/comparison?first_start_date=${first_start_date}&first_end_date=${first_end_date}&second_start_date=${second_start_date}&second_end_date=${second_end_date}`,
+      {
+        responseType: 'blob', // Excel dosyası için blob response
+      }
+    )
+    
+    // Backend'den gelen dosya adını header'dan al (eğer varsa), yoksa varsayılan ad oluştur
+    const contentDisposition = response.headers['content-disposition'] || response.headers['Content-Disposition']
+    let fileName = `fotokopi_karsilastirma_raporu_${first_start_date}_${first_end_date}_vs_${second_start_date}_${second_end_date}.xlsx`
+    
+    if (contentDisposition) {
+      const fileNameMatch = contentDisposition.match(/filename="(.+)"/) || 
+                           contentDisposition.match(/filename\*=UTF-8''(.+)/)
+      if (fileNameMatch) {
+        fileName = decodeURIComponent(fileNameMatch[1])
+      }
+    }
+    
+    // Blob'u indirilebilir dosya olarak işle
+    const url = window.URL.createObjectURL(new Blob([response.data], {
+      type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+    }))
+    const link = document.createElement('a')
+    link.href = url
+    link.setAttribute('download', fileName)
+    document.body.appendChild(link)
+    link.click()
+    link.remove()
+    window.URL.revokeObjectURL(url)
+    
+    return response.data
+  }
 }
 
 // Requesters APIs
