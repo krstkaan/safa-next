@@ -25,14 +25,26 @@ import {
 import { Edit, Trash2, Plus } from "lucide-react"
 import { toast } from "sonner"
 
-const requestSchema = z.object({
-  requester_id: z.string().min(1, "Talep eden seçilmelidir"),
-  approver_id: z.string().min(1, "Onaylayan seçilmelidir"),
-  color_copies: z.string().min(1, "Renkli kopya sayısı gereklidir"),
-  bw_copies: z.string().min(1, "Siyah-beyaz kopya sayısı gereklidir"),
-  requested_at: z.string().min(1, "İstek tarihi gereklidir"),
-  description: z.string().optional(),
-})
+const requestSchema = z
+  .object({
+    requester_id: z.string().min(1, "Talep eden seçilmelidir"),
+    approver_id: z.string().min(1, "Onaylayan seçilmelidir"),
+    color_copies: z.string().optional(),
+    bw_copies: z.string().optional(),
+    requested_at: z.string().min(1, "İstek tarihi gereklidir"),
+    description: z.string().optional(),
+  })
+  .refine(
+    (data) => {
+      const colorCopies = data.color_copies?.trim() || "0"
+      const bwCopies = data.bw_copies?.trim() || "0"
+      return Number.parseInt(colorCopies) > 0 || Number.parseInt(bwCopies) > 0
+    },
+    {
+      message: "En az bir kopya türü için sayı girilmelidir",
+      path: ["color_copies"], // Show error on color_copies field
+    },
+  )
 
 const requesterSchema = z.object({
   name: z.string().min(1, "İsim gereklidir"),
@@ -146,8 +158,8 @@ export default function PrintRequestsPage() {
       const requestData = {
         requester_id: Number(data.requester_id),
         approver_id: Number(data.approver_id),
-        color_copies: Number(data.color_copies),
-        bw_copies: Number(data.bw_copies),
+        color_copies: Number(data.color_copies?.trim() || "0"),
+        bw_copies: Number(data.bw_copies?.trim() || "0"),
         requested_at: data.requested_at,
         description: data.description,
       }

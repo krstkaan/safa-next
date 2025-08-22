@@ -49,8 +49,8 @@ export default function HomePage() {
 
             setStats({
             totalRequests: requestsResponse.pagination.total,
-            totalRequesters: requestersResponse.data.length,
-            totalApprovers: approversResponse.data.length,
+            totalRequesters: requestersResponse.pagination.total,
+            totalApprovers: approversResponse.pagination.total,
             totalCopies,
             });
 
