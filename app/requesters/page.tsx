@@ -135,25 +135,18 @@ export default function RequestersPage() {
   };
 
   const columns: Column<Requester>[] = [
-    {
-      key: 'id',
-      label: 'ID',
-      sortable: true,
-      sortKey: 'id'
-    },
+    // {
+    //   key: 'id',
+    //   label: 'ID',
+    //   sortable: true,
+    //   sortKey: 'id'
+    // },
     {
       key: 'name',
       label: 'İsim',
       sortable: true,
       sortKey: 'name'
-    },
-    {
-      key: 'created_at',
-      label: 'Oluşturulma Tarihi',
-      sortable: true,
-      sortKey: 'created_at',
-      render: (value) => new Date(value).toLocaleDateString('tr-TR'),
-    },
+    },  
     {
       key: 'actions',
       label: 'İşlemler',

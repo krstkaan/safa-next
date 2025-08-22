@@ -258,12 +258,12 @@ export default function PrintRequestsPage() {
   }
 
   const columns: Column<PrintRequest>[] = [
-    {
-      key: "id",
-      label: "ID",
-      sortable: true,
-      sortKey: "id",
-    },
+    // {
+    //   key: "id",
+    //   label: "ID",
+    //   sortable: true,
+    //   sortKey: "id",
+    // },
     {
       key: "requester_id",
       label: "Talep Eden",
@@ -305,13 +305,6 @@ export default function PrintRequestsPage() {
       label: "İstek Tarihi",
       sortable: true,
       sortKey: "requested_at",
-      render: (value) => new Date(value).toLocaleDateString("tr-TR"),
-    },
-    {
-      key: "created_at",
-      label: "Oluşturulma Tarihi",
-      sortable: true,
-      sortKey: "created_at",
       render: (value) => new Date(value).toLocaleDateString("tr-TR"),
     },
     {
