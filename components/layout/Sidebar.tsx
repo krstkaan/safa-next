@@ -15,6 +15,7 @@ import {
   X,
   Printer,
   Book,
+  Building,
 } from 'lucide-react';
 
 const sidebarSections = [
@@ -60,6 +61,16 @@ const sidebarSections = [
         title: 'Kitap Yönetimi',
         href: '/books',
         icon: Book,
+      },
+      {
+        title: 'Yazarlar',
+        href: '/authors',
+        icon: Users,
+      },
+      {
+        title: 'Yayınevleri',
+        href: '/publishers',
+        icon: Building,
       },
     ],
   },

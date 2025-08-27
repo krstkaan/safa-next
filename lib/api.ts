@@ -339,3 +339,275 @@ export const approversAPI = {
     return response.data
   },
 }
+
+// Book-related interfaces
+export interface Author {
+  id: number
+  name: string
+  created_at: string
+  updated_at: string
+}
+
+export interface Publisher {
+  id: number
+  name: string
+  created_at: string
+  updated_at: string
+}
+
+export interface Grade {
+  id: number
+  name: number
+  created_at: string
+  updated_at: string
+}
+
+export interface Book {
+  id: number
+  name: string
+  type?: string
+  language?: string
+  page_count?: number
+  is_donation: boolean
+  barcode?: string
+  shelf_code?: string
+  fixture_no?: string
+  author_id: number
+  publisher_id: number
+  created_at: string
+  updated_at: string
+  author?: Author
+  publisher?: Publisher
+  grades?: Grade[]
+}
+
+// Book filter parameters
+export interface BookFilters {
+  search?: string
+  author_id?: number
+  publisher_id?: number
+  grade_id?: number
+  is_donation?: boolean
+  with_relations?: boolean
+}
+
+// Authors APIs
+export const authorsAPI = {
+  getAll: async (page = 1, limit = 10, sortParams?: SortParams, search?: string) => {
+    let url = `/authors?page=${page}&limit=${limit}`
+    if (sortParams?.sort_by) {
+      url += `&sort_by=${sortParams.sort_by}&sort_direction=${sortParams.sort_direction || "asc"}`
+    }
+    if (search) {
+      url += `&search=${encodeURIComponent(search)}`
+    }
+    const response = await api.get<PaginatedApiResponse<Author>>(url)
+    return response.data
+  },
+
+  getAllUnpaginated: async (search?: string) => {
+    let url = "/authors"
+    if (search) {
+      url += `?search=${encodeURIComponent(search)}`
+    }
+    const response = await api.get<ApiResponse<Author[]>>(url)
+    return response.data
+  },
+
+  getById: async (id: number) => {
+    const response = await api.get<ApiResponse<Author>>(`/authors/${id}`)
+    return response.data
+  },
+
+  create: async (data: { name: string }) => {
+    const response = await api.post<ApiResponse<Author>>("/authors", data)
+    return response.data
+  },
+
+  update: async (id: number, data: { name: string }) => {
+    const response = await api.put<ApiResponse<Author>>(`/authors/${id}`, data)
+    return response.data
+  },
+
+  delete: async (id: number) => {
+    const response = await api.delete<ApiResponse<null>>(`/authors/${id}`)
+    return response.data
+  },
+}
+
+// Publishers APIs
+export const publishersAPI = {
+  getAll: async (page = 1, limit = 10, sortParams?: SortParams, search?: string) => {
+    let url = `/publishers?page=${page}&limit=${limit}`
+    if (sortParams?.sort_by) {
+      url += `&sort_by=${sortParams.sort_by}&sort_direction=${sortParams.sort_direction || "asc"}`
+    }
+    if (search) {
+      url += `&search=${encodeURIComponent(search)}`
+    }
+    const response = await api.get<PaginatedApiResponse<Publisher>>(url)
+    return response.data
+  },
+
+  getAllUnpaginated: async (search?: string) => {
+    let url = "/publishers"
+    if (search) {
+      url += `?search=${encodeURIComponent(search)}`
+    }
+    const response = await api.get<ApiResponse<Publisher[]>>(url)
+    return response.data
+  },
+
+  getById: async (id: number) => {
+    const response = await api.get<ApiResponse<Publisher>>(`/publishers/${id}`)
+    return response.data
+  },
+
+  create: async (data: { name: string }) => {
+    const response = await api.post<ApiResponse<Publisher>>("/publishers", data)
+    return response.data
+  },
+
+  update: async (id: number, data: { name: string }) => {
+    const response = await api.put<ApiResponse<Publisher>>(`/publishers/${id}`, data)
+    return response.data
+  },
+
+  delete: async (id: number) => {
+    const response = await api.delete<ApiResponse<null>>(`/publishers/${id}`)
+    return response.data
+  },
+}
+
+// Grades APIs
+export const gradesAPI = {
+  getAll: async (page = 1, limit = 10, sortParams?: SortParams, search?: number) => {
+    let url = `/grades?page=${page}&limit=${limit}`
+    if (sortParams?.sort_by) {
+      url += `&sort_by=${sortParams.sort_by}&sort_direction=${sortParams.sort_direction || "asc"}`
+    }
+    if (search) {
+      url += `&search=${search}`
+    }
+    const response = await api.get<PaginatedApiResponse<Grade>>(url)
+    return response.data
+  },
+
+  getAllUnpaginated: async (search?: number) => {
+    let url = "/grades"
+    if (search) {
+      url += `?search=${search}`
+    }
+    const response = await api.get<ApiResponse<Grade[]>>(url)
+    return response.data
+  },
+
+  getById: async (id: number) => {
+    const response = await api.get<ApiResponse<Grade>>(`/grades/${id}`)
+    return response.data
+  },
+
+  create: async (data: { name: number }) => {
+    const response = await api.post<ApiResponse<Grade>>("/grades", data)
+    return response.data
+  },
+
+  update: async (id: number, data: { name: number }) => {
+    const response = await api.put<ApiResponse<Grade>>(`/grades/${id}`, data)
+    return response.data
+  },
+
+  delete: async (id: number) => {
+    const response = await api.delete<ApiResponse<null>>(`/grades/${id}`)
+    return response.data
+  },
+}
+
+// Books APIs
+export const booksAPI = {
+  getAll: async (page = 1, limit = 10, sortParams?: SortParams, filters?: BookFilters) => {
+    let url = `/books?page=${page}&limit=${limit}`
+    if (sortParams?.sort_by) {
+      url += `&sort_by=${sortParams.sort_by}&sort_direction=${sortParams.sort_direction || "asc"}`
+    }
+
+    // Add filter parameters
+    if (filters) {
+      Object.entries(filters).forEach(([key, value]) => {
+        if (value !== undefined && value !== null && value !== "") {
+          url += `&${key}=${encodeURIComponent(value)}`
+        }
+      })
+    }
+
+    const response = await api.get<PaginatedApiResponse<Book>>(url)
+    return response.data
+  },
+
+  getAllUnpaginated: async (filters?: BookFilters) => {
+    let url = "/books"
+    
+    if (filters) {
+      const params = new URLSearchParams()
+      Object.entries(filters).forEach(([key, value]) => {
+        if (value !== undefined && value !== null && value !== "") {
+          params.append(key, value.toString())
+        }
+      })
+      if (params.toString()) {
+        url += `?${params.toString()}`
+      }
+    }
+
+    const response = await api.get<ApiResponse<Book[]>>(url)
+    return response.data
+  },
+
+  getById: async (id: number, withRelations = false) => {
+    let url = `/books/${id}`
+    if (withRelations) {
+      url += "?with_relations=true"
+    }
+    const response = await api.get<ApiResponse<Book>>(url)
+    return response.data
+  },
+
+  create: async (data: {
+    name: string
+    type?: string
+    language?: string
+    page_count?: number
+    is_donation: boolean
+    barcode?: string
+    shelf_code?: string
+    fixture_no?: string
+    author_id: number
+    publisher_id: number
+    grade_ids?: number[]
+  }) => {
+    const response = await api.post<ApiResponse<Book>>("/books", data)
+    return response.data
+  },
+
+  update: async (id: number, data: {
+    name: string
+    type?: string
+    language?: string
+    page_count?: number
+    is_donation: boolean
+    barcode?: string
+    shelf_code?: string
+    fixture_no?: string
+    author_id: number
+    publisher_id: number
+    grade_ids?: number[]
+  }) => {
+    const response = await api.put<ApiResponse<Book>>(`/books/${id}`, data)
+    return response.data
+  },
+
+  delete: async (id: number) => {
+    const response = await api.delete<ApiResponse<null>>(`/books/${id}`)
+    return response.data
+  },
+}
