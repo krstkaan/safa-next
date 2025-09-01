@@ -13,7 +13,6 @@ interface DashboardStats {
   totalRequests: number;
   totalRequesters: number;
   totalApprovers: number;
-  totalCopies: number;
   totalBooks: number;
   totalAuthors: number;
   totalPublishers: number;
@@ -26,7 +25,6 @@ export default function HomePage() {
     totalRequests: 0,
     totalRequesters: 0,
     totalApprovers: 0,
-    totalCopies: 0,
     totalBooks: 0,
     totalAuthors: 0,
     totalPublishers: 0,
@@ -63,13 +61,11 @@ export default function HomePage() {
 
           const requests = requestsResponse.data;
           const books = booksResponse.data;
-          const totalCopies = requests.reduce((sum, req) => sum + req.color_copies + req.bw_copies, 0);
 
           setStats({
             totalRequests: requestsResponse.pagination.total,
             totalRequesters: requestersResponse.pagination.total,
             totalApprovers: approversResponse.pagination.total,
-            totalCopies,
             totalBooks: booksResponse.pagination.total,
             totalAuthors: authorsResponse.pagination.total,
             totalPublishers: publishersResponse.pagination.total,
@@ -166,15 +162,9 @@ export default function HomePage() {
                 </div>
               </CardHeader>
               <CardContent>
-                <div className="grid grid-cols-2 gap-6">
-                  <div>
-                    <div className="text-4xl font-bold text-orange-900">{stats.totalRequests}</div>
-                    <p className="text-sm text-orange-700 mt-1">Toplam İstek</p>
-                  </div>
-                  <div>
-                    <div className="text-4xl font-bold text-orange-900">{stats.totalCopies}</div>
-                    <p className="text-sm text-orange-700 mt-1">Toplam Kopya</p>
-                  </div>
+                <div>
+                  <div className="text-4xl font-bold text-orange-900 mb-2">{stats.totalRequests}</div>
+                  <p className="text-sm text-orange-700">Toplam İstek</p>
                 </div>
               </CardContent>
             </Card>
