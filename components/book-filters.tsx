@@ -24,14 +24,14 @@ import type {
   BookFilters as ImportedFilters,
   Author,
   Publisher,
-  Grade,
+  BookLevel,
 } from "@/lib/api";
 
 // Extended filters interface to include all properties used in component
 interface BookFilters extends ImportedFilters {
   author_id?: number;
   publisher_id?: number;
-  grade_id?: number;
+  level?: BookLevel;
   name?: string;
   is_donation?: boolean;
   with_relations?: boolean;
@@ -42,7 +42,6 @@ interface BookFiltersProps {
   onFiltersChange: (filters: BookFilters) => void;
   authors: Author[];
   publishers: Publisher[];
-  grades: Grade[];
   onSearchAuthors: (query: string) => void;
   onSearchPublishers: (query: string) => void;
   authorSearchLoading: boolean;
@@ -54,7 +53,6 @@ export function BookFilters({
   onFiltersChange,
   authors,
   publishers,
-  grades,
   onSearchAuthors,
   onSearchPublishers,
   authorSearchLoading,
@@ -173,28 +171,26 @@ export function BookFilters({
                 />
               </div>
 
-              {/* Grade Filter */}
+              {/* Level Filter */}
               <div className="space-y-2">
-                <Label>Sınıf</Label>
+                <Label>Kademe</Label>
                 <Select
-                  value={filters.grade_id?.toString() || "all"}
+                  value={filters.level || "all"}
                   onValueChange={(value) =>
                     handleFilterChange(
-                      "grade_id",
-                      value === "all" ? undefined : Number(value)
+                      "level",
+                      value === "all" ? undefined : (value as BookLevel)
                     )
                   }
                 >
                   <SelectTrigger>
-                    <SelectValue placeholder="Sınıf seçin" />
+                    <SelectValue placeholder="Kademe seçin" />
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="all">Tümü</SelectItem>
-                    {grades.map((grade) => (
-                      <SelectItem key={grade.id} value={grade.id.toString()}>
-                        {grade.name}. Sınıf
-                      </SelectItem>
-                    ))}
+                    <SelectItem value="ilkokul">İlkokul</SelectItem>
+                    <SelectItem value="ortaokul">Ortaokul</SelectItem>
+                    <SelectItem value="ortak">Ortak</SelectItem>
                   </SelectContent>
                 </Select>
               </div>

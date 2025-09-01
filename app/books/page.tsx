@@ -40,11 +40,10 @@ import {
   booksAPI,
   authorsAPI,
   publishersAPI,
-  gradesAPI,
   type Book as BookType,
   type Author,
   type Publisher,
-  type Grade,
+  type BookLevel,
   type BookFilters as BookFiltersType,
   type SortParams,
   type PaginationInfo,
@@ -52,15 +51,17 @@ import {
 
 const bookSchema = z.object({
   name: z.string().min(1, "Kitap adı gereklidir"),
-  language: z.string().optional(),
-  page_count: z.string().optional(),
+  language: z.string().min(1, "Dil seçilmelidir"),
+  page_count: z.string().min(1, "Sayfa sayısı gereklidir"),
   is_donation: z.boolean(),
-  barcode: z.string().optional(),
-  shelf_code: z.string().optional(),
-  fixture_no: z.string().optional(),
+  barcode: z.string().min(1, "Barkod gereklidir"),
+  shelf_code: z.string().min(1, "Raf kodu gereklidir"),
+  fixture_no: z.string().min(1, "Demirbaş numarası gereklidir"),
   author_id: z.string().min(1, "Yazar seçilmelidir"),
   publisher_id: z.string().min(1, "Yayınevi seçilmelidir"),
-  grade_ids: z.array(z.number()).optional(),
+  level: z.enum(["ilkokul", "ortaokul", "ortak"]).refine(val => val !== undefined, {
+    message: "Seviye seçilmelidir"
+  }),
 });
 
 const authorSchema = z.object({
@@ -79,7 +80,6 @@ export default function BooksPage() {
   const [books, setBooks] = useState<BookType[]>([]);
   const [authors, setAuthors] = useState<Author[]>([]);
   const [publishers, setPublishers] = useState<Publisher[]>([]);
-  const [grades, setGrades] = useState<Grade[]>([]);
   const [loading, setLoading] = useState(true);
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editingBook, setEditingBook] = useState<BookType | null>(null);
@@ -110,7 +110,7 @@ export default function BooksPage() {
       fixture_no: "",
       author_id: "", // Changed to empty string to trigger validation
       publisher_id: "", // Changed to empty string to trigger validation
-      grade_ids: [],
+      level: "ortak", // Default level
     },
   });
 
@@ -138,19 +138,16 @@ export default function BooksPage() {
         booksResponse,
         authorsResponse,
         publishersResponse,
-        gradesResponse,
       ] = await Promise.all([
         booksAPI.getAll(page, itemsPerPage, sort, currentFilters),
         authorsAPI.getAllUnpaginated(),
         publishersAPI.getAllUnpaginated(),
-        gradesAPI.getAllUnpaginated(),
       ]);
 
       setBooks(booksResponse.data);
       setPagination(booksResponse.pagination);
       setAuthors(authorsResponse.data);
       setPublishers(publishersResponse.data);
-      setGrades(gradesResponse.data);
     } catch (error) {
       toast.error("Veri yüklenirken hata oluştu");
     } finally {
@@ -198,10 +195,7 @@ export default function BooksPage() {
         fixture_no: data.fixture_no || undefined,
         author_id: Number.parseInt(data.author_id),
         publisher_id: Number.parseInt(data.publisher_id),
-        grade_ids:
-          data.grade_ids && data.grade_ids.length > 0
-            ? data.grade_ids
-            : undefined,
+        level: data.level,
       };
 
       if (editingBook) {
@@ -217,7 +211,47 @@ export default function BooksPage() {
       setEditingBook(null);
       form.reset();
     } catch (error: any) {
-      toast.error(error.response?.data?.message || "Bir hata oluştu");
+      // Handle validation errors from backend
+      if (error.response?.data?.errors) {
+        const errors = error.response.data.errors;
+        let errorMessage = "Doğrulama hatası:\n";
+        
+        // Map backend field names to Turkish descriptions
+        const fieldMap: { [key: string]: string } = {
+          name: "Kitap adı",
+          barcode: "Barkod",
+          fixture_no: "Demirbaş numarası",
+          shelf_code: "Raf kodu",
+          language: "Dil",
+          page_count: "Sayfa sayısı",
+          author_id: "Yazar",
+          publisher_id: "Yayınevi",
+          level: "Kademe"
+        };
+
+        Object.entries(errors).forEach(([field, messages]: [string, any]) => {
+          const fieldName = fieldMap[field] || field;
+          const fieldMessages = Array.isArray(messages) ? messages : [messages];
+          
+          fieldMessages.forEach((message: string) => {
+            // Translate common validation messages to Turkish
+            let translatedMessage = message;
+            if (message.includes("has already been taken")) {
+              translatedMessage = "zaten kullanılıyor";
+            } else if (message.includes("must be unique")) {
+              translatedMessage = "benzersiz olmalıdır";
+            } else if (message.includes("is required")) {
+              translatedMessage = "gereklidir";
+            }
+            
+            errorMessage += `• ${fieldName}: ${translatedMessage}\n`;
+          });
+        });
+        
+        toast.error(errorMessage.trim());
+      } else {
+        toast.error(error.response?.data?.message || "Bir hata oluştu");
+      }
     }
   };
 
@@ -231,7 +265,33 @@ export default function BooksPage() {
       setAuthorDialogOpen(false);
       authorForm.reset();
     } catch (error: any) {
-      toast.error(error.response?.data?.message || "Bir hata oluştu");
+      // Handle validation errors from backend
+      if (error.response?.data?.errors) {
+        const errors = error.response.data.errors;
+        let errorMessage = "Doğrulama hatası:\n";
+        
+        Object.entries(errors).forEach(([field, messages]: [string, any]) => {
+          const fieldName = field === "name" ? "Yazar adı" : field;
+          const fieldMessages = Array.isArray(messages) ? messages : [messages];
+          
+          fieldMessages.forEach((message: string) => {
+            let translatedMessage = message;
+            if (message.includes("has already been taken")) {
+              translatedMessage = "zaten kullanılıyor";
+            } else if (message.includes("must be unique")) {
+              translatedMessage = "benzersiz olmalıdır";
+            } else if (message.includes("is required")) {
+              translatedMessage = "gereklidir";
+            }
+            
+            errorMessage += `• ${fieldName}: ${translatedMessage}\n`;
+          });
+        });
+        
+        toast.error(errorMessage.trim());
+      } else {
+        toast.error(error.response?.data?.message || "Bir hata oluştu");
+      }
     }
   };
 
@@ -245,7 +305,33 @@ export default function BooksPage() {
       setPublisherDialogOpen(false);
       publisherForm.reset();
     } catch (error: any) {
-      toast.error(error.response?.data?.message || "Bir hata oluştu");
+      // Handle validation errors from backend
+      if (error.response?.data?.errors) {
+        const errors = error.response.data.errors;
+        let errorMessage = "Doğrulama hatası:\n";
+        
+        Object.entries(errors).forEach(([field, messages]: [string, any]) => {
+          const fieldName = field === "name" ? "Yayınevi adı" : field;
+          const fieldMessages = Array.isArray(messages) ? messages : [messages];
+          
+          fieldMessages.forEach((message: string) => {
+            let translatedMessage = message;
+            if (message.includes("has already been taken")) {
+              translatedMessage = "zaten kullanılıyor";
+            } else if (message.includes("must be unique")) {
+              translatedMessage = "benzersiz olmalıdır";
+            } else if (message.includes("is required")) {
+              translatedMessage = "gereklidir";
+            }
+            
+            errorMessage += `• ${fieldName}: ${translatedMessage}\n`;
+          });
+        });
+        
+        toast.error(errorMessage.trim());
+      } else {
+        toast.error(error.response?.data?.message || "Bir hata oluştu");
+      }
     }
   };
 
@@ -271,7 +357,7 @@ export default function BooksPage() {
       fixture_no: book.fixture_no || "",
       author_id: book.author_id.toString(),
       publisher_id: book.publisher_id.toString(),
-      grade_ids: book.grades?.map((g) => g.id) || [],
+      level: book.level,
     });
     setDialogOpen(true);
   };
@@ -300,78 +386,9 @@ export default function BooksPage() {
       fixture_no: "",
       author_id: "", // Empty string for validation
       publisher_id: "", // Empty string for validation
-      grade_ids: [],
+      level: "ortak", // Default level
     });
     setDialogOpen(true);
-  };
-
-  const handleGradeToggle = (gradeId: number) => {
-    const currentGrades = form.getValues("grade_ids") || [];
-    const newGrades = currentGrades.includes(gradeId)
-      ? currentGrades.filter((id) => id !== gradeId)
-      : [...currentGrades, gradeId];
-    form.setValue("grade_ids", newGrades);
-  };
-
-  const handleGradeGroupToggle = (gradeGroup: "ilkokul" | "ortaokul") => {
-    const ilkokulIds = [1, 2, 3, 4];
-    const ortaokulIds = [5, 6, 7, 8];
-    const currentGrades = form.getValues("grade_ids") || [];
-
-    if (gradeGroup === "ilkokul") {
-      const hasAllIlkokul = ilkokulIds.every((id) =>
-        currentGrades.includes(id)
-      );
-      if (hasAllIlkokul) {
-        // Tüm ilkokul sınıflarını kaldır
-        const newGrades = currentGrades.filter(
-          (id) => !ilkokulIds.includes(id)
-        );
-        form.setValue("grade_ids", newGrades, { shouldValidate: true });
-      } else {
-        // Tüm ilkokul sınıflarını ekle (ortaokul sınıfları varsa onları koru)
-        const withoutIlkokul = currentGrades.filter(
-          (id) => !ilkokulIds.includes(id)
-        );
-        const newGrades = [...withoutIlkokul, ...ilkokulIds];
-        form.setValue("grade_ids", newGrades, { shouldValidate: true });
-      }
-    } else {
-      const hasAllOrtaokul = ortaokulIds.every((id) =>
-        currentGrades.includes(id)
-      );
-      if (hasAllOrtaokul) {
-        // Tüm ortaokul sınıflarını kaldır
-        const newGrades = currentGrades.filter(
-          (id) => !ortaokulIds.includes(id)
-        );
-        form.setValue("grade_ids", newGrades, { shouldValidate: true });
-      } else {
-        // Tüm ortaokul sınıflarını ekle (ilkokul sınıfları varsa onları koru)
-        const withoutOrtaokul = currentGrades.filter(
-          (id) => !ortaokulIds.includes(id)
-        );
-        const newGrades = [...withoutOrtaokul, ...ortaokulIds];
-        form.setValue("grade_ids", newGrades, { shouldValidate: true });
-      }
-    }
-  };
-
-  const getGradeGroupText = (gradeIds: number[]) => {
-    const ilkokulIds = [1, 2, 3, 4];
-    const ortaokulIds = [5, 6, 7, 8];
-
-    const hasIlkokul = gradeIds.some((id) => ilkokulIds.includes(id));
-    const hasOrtaokul = gradeIds.some((id) => ortaokulIds.includes(id));
-
-    if (hasIlkokul && hasOrtaokul) {
-      return "İlkokul, Ortaokul";
-    } else if (hasIlkokul) {
-      return "İlkokul";
-    } else if (hasOrtaokul) {
-      return "Ortaokul";
-    }
-    return "-";
   };
 
   const columns: Column<BookType>[] = [
@@ -424,17 +441,15 @@ export default function BooksPage() {
       render: (value) => value || "-",
     },
     {
-      key: "grades",
-      label: "Sınıflar",
+      key: "level",
+      label: "Kademe",
       render: (_, row) => (
         <div className="flex flex-wrap gap-1">
-          {row.grades && row.grades.length > 0 ? (
-            <Badge variant="outline" className="text-xs">
-              {getGradeGroupText(row.grades.map((g) => g.id))}
-            </Badge>
-          ) : (
-            <span className="text-gray-500 text-sm">-</span>
-          )}
+          <Badge variant="outline" className="text-xs">
+            {row.level === "ilkokul" ? "İlkokul" : 
+             row.level === "ortaokul" ? "Ortaokul" : 
+             "Ortak"}
+          </Badge>
         </div>
       ),
     },
@@ -513,7 +528,7 @@ export default function BooksPage() {
             name="language"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Dil</FormLabel>
+                <FormLabel>Dil *</FormLabel>
                 <Select onValueChange={field.onChange} value={field.value}>
                   <FormControl>
                     <SelectTrigger>
@@ -534,7 +549,7 @@ export default function BooksPage() {
             name="page_count"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Sayfa Sayısı</FormLabel>
+                <FormLabel>Sayfa Sayısı *</FormLabel>
                 <FormControl>
                   <Input type="number" min="0" placeholder="0" {...field} />
                 </FormControl>
@@ -617,7 +632,7 @@ export default function BooksPage() {
             name="barcode"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Barkod</FormLabel>
+                <FormLabel>Barkod *</FormLabel>
                 <FormControl>
                   <Input placeholder="Barkod numarası" {...field} />
                 </FormControl>
@@ -630,7 +645,7 @@ export default function BooksPage() {
             name="shelf_code"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Raf Kodu</FormLabel>
+                <FormLabel>Raf Kodu *</FormLabel>
                 <FormControl>
                   <Input placeholder="Raf kodu" {...field} />
                 </FormControl>
@@ -643,7 +658,7 @@ export default function BooksPage() {
             name="fixture_no"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Demirbaş No</FormLabel>
+                <FormLabel>Demirbaş No *</FormLabel>
                 <FormControl>
                   <Input placeholder="Demirbaş numarası" {...field} />
                 </FormControl>
@@ -671,53 +686,28 @@ export default function BooksPage() {
           )}
         />
 
-        <div>
-          <Label>Sınıflar</Label>
-          <div className="grid grid-cols-2 gap-4 mt-2">
-            <FormField
-              control={form.control}
-              name="grade_ids"
-              render={({ field }) => {
-                const currentGrades = field.value || [];
-                const ilkokulIds = [1, 2, 3, 4];
-                const ortaokulIds = [5, 6, 7, 8];
-
-                return (
-                  <>
-                    <div className="flex items-center space-x-2">
-                      <Checkbox
-                        id="ilkokul"
-                        checked={ilkokulIds.every((id) =>
-                          currentGrades.includes(id)
-                        )}
-                        onCheckedChange={() =>
-                          handleGradeGroupToggle("ilkokul")
-                        }
-                      />
-                      <Label htmlFor="ilkokul" className="cursor-pointer">
-                        İlkokul (1-4. Sınıf)
-                      </Label>
-                    </div>
-                    <div className="flex items-center space-x-2">
-                      <Checkbox
-                        id="ortaokul"
-                        checked={ortaokulIds.every((id) =>
-                          currentGrades.includes(id)
-                        )}
-                        onCheckedChange={() =>
-                          handleGradeGroupToggle("ortaokul")
-                        }
-                      />
-                      <Label htmlFor="ortaokul" className="cursor-pointer">
-                        Ortaokul (5-8. Sınıf)
-                      </Label>
-                    </div>
-                  </>
-                );
-              }}
-            />
-          </div>
-        </div>
+        <FormField
+          control={form.control}
+          name="level"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Kademe *</FormLabel>
+              <Select onValueChange={field.onChange} value={field.value}>
+                <FormControl>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Kademe seçiniz" />
+                  </SelectTrigger>
+                </FormControl>
+                <SelectContent>
+                  <SelectItem value="ilkokul">İlkokul</SelectItem>
+                  <SelectItem value="ortaokul">Ortaokul</SelectItem>
+                  <SelectItem value="ortak">Ortak</SelectItem>
+                </SelectContent>
+              </Select>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
 
         <div className="flex justify-end space-x-2">
           <Button
@@ -765,7 +755,6 @@ export default function BooksPage() {
         onFiltersChange={handleFiltersChange}
         authors={authors}
         publishers={publishers}
-        grades={grades}
         onSearchAuthors={searchAuthorsForFilter}
         onSearchPublishers={searchPublishersForFilter}
         authorSearchLoading={authorSearchLoading}
@@ -783,15 +772,6 @@ export default function BooksPage() {
         sortParams={sortParams}
         onSortChange={handleSortChange}
         onAdd={handleNewBook}
-        dialogOpen={dialogOpen}
-        onDialogOpenChange={setDialogOpen}
-        dialogTitle={editingBook ? "Kitap Düzenle" : "Yeni Kitap Oluştur"}
-        dialogDescription={
-          editingBook
-            ? "Mevcut kitabı düzenleyin."
-            : "Yeni bir kitap oluşturun."
-        }
-        dialogContent={dialogContent}
         addButtonText="Yeni Kitap"
         title="Kitaplar"
         description="Kütüphane kitap koleksiyonu yönetim sistemi"
@@ -799,6 +779,23 @@ export default function BooksPage() {
         customActions={customActions}
         emptyStateText="Henüz kitap bulunmuyor"
       />
+
+      {/* Custom Book Form Dialog */}
+      <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
+        <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>
+              {editingBook ? "Kitap Düzenle" : "Yeni Kitap Oluştur"}
+            </DialogTitle>
+            <DialogDescription>
+              {editingBook
+                ? "Mevcut kitabı düzenleyin."
+                : "Yeni bir kitap oluşturun."}
+            </DialogDescription>
+          </DialogHeader>
+          {dialogContent}
+        </DialogContent>
+      </Dialog>
 
       <Dialog open={authorDialogOpen} onOpenChange={setAuthorDialogOpen}>
         <DialogContent>

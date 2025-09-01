@@ -346,6 +346,7 @@ export interface Author {
   name: string
   created_at: string
   updated_at: string
+  deleted_at?: string
 }
 
 export interface Publisher {
@@ -353,14 +354,10 @@ export interface Publisher {
   name: string
   created_at: string
   updated_at: string
+  deleted_at?: string
 }
 
-export interface Grade {
-  id: number
-  name: number
-  created_at: string
-  updated_at: string
-}
+export type BookLevel = "ilkokul" | "ortaokul" | "ortak"
 
 export interface Book {
   id: number
@@ -374,11 +371,12 @@ export interface Book {
   fixture_no?: string
   author_id: number
   publisher_id: number
+  level: BookLevel
   created_at: string
   updated_at: string
+  deleted_at?: string
   author?: Author
   publisher?: Publisher
-  grades?: Grade[]
 }
 
 // Book filter parameters
@@ -386,7 +384,7 @@ export interface BookFilters {
   search?: string
   author_id?: number
   publisher_id?: number
-  grade_id?: number
+  level?: BookLevel
   is_donation?: boolean
   with_relations?: boolean
 }
@@ -479,50 +477,6 @@ export const publishersAPI = {
   },
 }
 
-// Grades APIs
-export const gradesAPI = {
-  getAll: async (page = 1, limit = 10, sortParams?: SortParams, search?: number) => {
-    let url = `/grades?page=${page}&limit=${limit}`
-    if (sortParams?.sort_by) {
-      url += `&sort_by=${sortParams.sort_by}&sort_direction=${sortParams.sort_direction || "asc"}`
-    }
-    if (search) {
-      url += `&search=${search}`
-    }
-    const response = await api.get<PaginatedApiResponse<Grade>>(url)
-    return response.data
-  },
-
-  getAllUnpaginated: async (search?: number) => {
-    let url = "/grades"
-    if (search) {
-      url += `?search=${search}`
-    }
-    const response = await api.get<ApiResponse<Grade[]>>(url)
-    return response.data
-  },
-
-  getById: async (id: number) => {
-    const response = await api.get<ApiResponse<Grade>>(`/grades/${id}`)
-    return response.data
-  },
-
-  create: async (data: { name: number }) => {
-    const response = await api.post<ApiResponse<Grade>>("/grades", data)
-    return response.data
-  },
-
-  update: async (id: number, data: { name: number }) => {
-    const response = await api.put<ApiResponse<Grade>>(`/grades/${id}`, data)
-    return response.data
-  },
-
-  delete: async (id: number) => {
-    const response = await api.delete<ApiResponse<null>>(`/grades/${id}`)
-    return response.data
-  },
-}
-
 // Books APIs
 export const booksAPI = {
   getAll: async (page = 1, limit = 10, sortParams?: SortParams, filters?: BookFilters) => {
@@ -583,7 +537,7 @@ export const booksAPI = {
     fixture_no?: string
     author_id: number
     publisher_id: number
-    grade_ids?: number[]
+    level: BookLevel
   }) => {
     const response = await api.post<ApiResponse<Book>>("/books", data)
     return response.data
@@ -600,7 +554,7 @@ export const booksAPI = {
     fixture_no?: string
     author_id: number
     publisher_id: number
-    grade_ids?: number[]
+    level: BookLevel
   }) => {
     const response = await api.put<ApiResponse<Book>>(`/books/${id}`, data)
     return response.data
