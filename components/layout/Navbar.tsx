@@ -22,12 +22,14 @@ export function Navbar() {
   // Anneniz için özel tatlı mesajlar 💕
   const sweetMessages = [
     "Anne, çay molası zamanı! ☕",
+    "Fatmaaa, terliklerim nerede?",
+    "Müsait olunca beni ara !!",
+    "Fatmaaa, bana giyecek bir şey versene !!",
     "Dünya'nın en iyi annesi burada çalışıyor! 💕",
     "Harika iş çıkarıyorsun anne! ⭐",
     "Bugün de güzel işler yapıyoruz! 🌸",
     "Anne, sen bir harikasın! 🌟",
     "Kütüphane kraliçesi iş başında! 👑",
-    "Bugün hangi güzel kitaplara bakacağız? 📖",
   ];
 
   const [currentMessage, setCurrentMessage] = useState(sweetMessages[0]);
