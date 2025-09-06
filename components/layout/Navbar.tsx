@@ -13,10 +13,30 @@ import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { useAuth } from '@/contexts/AuthContext';
 import { useRouter } from 'next/navigation';
 import { LogOut, User, Settings } from 'lucide-react';
+import { useState, useEffect } from 'react';
 
 export function Navbar() {
   const { user, logout } = useAuth();
   const router = useRouter();
+
+  // Anneniz için özel tatlı mesajlar 💕
+  const sweetMessages = [
+    "Anne, çay molası zamanı! ☕",
+    "Dünya'nın en iyi annesi burada çalışıyor! 💕",
+    "Harika iş çıkarıyorsun anne! ⭐",
+    "Bugün de güzel işler yapıyoruz! 🌸",
+    "Anne, sen bir harikasın! 🌟",
+    "Kütüphane kraliçesi iş başında! 👑",
+    "Bugün hangi güzel kitaplara bakacağız? 📖",
+  ];
+
+  const [currentMessage, setCurrentMessage] = useState(sweetMessages[0]);
+
+  useEffect(() => {
+    // Sayfa her yüklendiğinde rastgele bir mesaj seç
+    const randomMessage = sweetMessages[Math.floor(Math.random() * sweetMessages.length)];
+    setCurrentMessage(randomMessage);
+  }, []);
 
   const handleLogout = () => {
     logout();
@@ -52,8 +72,7 @@ export function Navbar() {
 
       <div className="flex items-center space-x-4">
         <div className="text-sm text-gray-600 hidden sm:block">
-          <span className="text-gray-400">Hoş geldin,</span>
-          <span className="font-medium text-gray-700 ml-1">{user?.name}</span>
+          <span className="text-purple-500 font-medium animate-pulse">{currentMessage}</span>
         </div>
 
         <DropdownMenu>

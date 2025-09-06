@@ -56,7 +56,10 @@ export default function LoginPage() {
             Safa Kütüphane Sistemi
           </h2>
           <p className="mt-2 text-sm text-gray-600">
-            Hesabınıza giriş yapın
+            Anne, hoş geldin! 💕
+          </p>
+          <p className="mt-1 text-xs text-purple-500 font-medium">
+            ✨ Bugün de harika işler yapacağız! ✨
           </p>
         </div>
 

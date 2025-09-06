@@ -249,6 +249,38 @@ export const printRequestsAPI = {
     window.URL.revokeObjectURL(url)
     
     return response.data
+  },
+
+  exportAllRequests: async () => {
+    const response = await api.get('/print-requests/export/all', {
+      responseType: 'blob', // Excel dosyası için blob response
+    })
+    
+    // Backend'den gelen dosya adını header'dan al (eğer varsa), yoksa varsayılan ad oluştur
+    const contentDisposition = response.headers['content-disposition'] || response.headers['Content-Disposition']
+    let fileName = `tum_fotokopi_talepleri_${new Date().toISOString().split('T')[0]}.xlsx`
+    
+    if (contentDisposition) {
+      const fileNameMatch = contentDisposition.match(/filename="(.+)"/) || 
+                           contentDisposition.match(/filename\*=UTF-8''(.+)/)
+      if (fileNameMatch) {
+        fileName = decodeURIComponent(fileNameMatch[1])
+      }
+    }
+    
+    // Blob'u indirilebilir dosya olarak işle
+    const url = window.URL.createObjectURL(new Blob([response.data], {
+      type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+    }))
+    const link = document.createElement('a')
+    link.href = url
+    link.setAttribute('download', fileName)
+    document.body.appendChild(link)
+    link.click()
+    link.remove()
+    window.URL.revokeObjectURL(url)
+    
+    return response.data
   }
 }
 

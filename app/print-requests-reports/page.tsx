@@ -7,7 +7,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Button } from "@/components/ui/button"
 import { Label } from "@/components/ui/label"
 import { printRequestsAPI } from "@/lib/api"
-import { FileSpreadsheet, Calendar, Download, Loader2, BarChart3 } from "lucide-react"
+import { FileSpreadsheet, Calendar, Download, Loader2, BarChart3, Database } from "lucide-react"
 import { toast } from "sonner"
 
 export default function PrintRequestsReports() {
@@ -22,6 +22,7 @@ export default function PrintRequestsReports() {
   const [secondStartDate, setSecondStartDate] = useState("")
   const [secondEndDate, setSecondEndDate] = useState("")
   const [isDownloadingComparison, setIsDownloadingComparison] = useState(false)
+  const [isExportingAll, setIsExportingAll] = useState(false)
 
   useEffect(() => {
     if (!loading && !user) {
@@ -94,6 +95,19 @@ export default function PrintRequestsReports() {
       toast.error("Karşılaştırma raporu indirilirken bir hata oluştu")
     } finally {
       setIsDownloadingComparison(false)
+    }
+  }
+
+  const exportAllRequests = async () => {
+    setIsExportingAll(true)
+    try {
+      await printRequestsAPI.exportAllRequests()
+      toast.success("Tüm fotokopi talepleri başarıyla indirildi")
+    } catch (error) {
+      console.error("Tüm talepleri dışa aktarma hatası:", error)
+      toast.error("Tüm talepleri dışa aktarırken bir hata oluştu")
+    } finally {
+      setIsExportingAll(false)
     }
   }
 
@@ -265,6 +279,41 @@ export default function PrintRequestsReports() {
                       <Download className="h-4 w-4" />
                     )}
                     {isDownloadingComparison ? "İndiriliyor..." : "Karşılaştırma Raporu İndir"}
+                  </Button>
+                </div>
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Database className="h-5 w-5" />
+                  Tüm Talepleri Dışa Aktar
+                </CardTitle>
+                <CardDescription>
+                  Sistemdeki tüm fotokopi taleplerini Excel formatında indirin
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="p-4 bg-blue-50 border border-blue-200 rounded-md">
+                  <p className="text-sm text-blue-800">
+                    Bu işlem sistemdeki tüm fotokopi taleplerini tek bir Excel dosyasında indirecektir. 
+                    Büyük veri setleri için işlem biraz zaman alabilir.
+                  </p>
+                </div>
+
+                <div className="flex justify-start">
+                  <Button
+                    onClick={exportAllRequests}
+                    disabled={isExportingAll}
+                    className="flex items-center gap-2"
+                  >
+                    {isExportingAll ? (
+                      <Loader2 className="h-4 w-4 animate-spin" />
+                    ) : (
+                      <Download className="h-4 w-4" />
+                    )}
+                    {isExportingAll ? "Dışa Aktarılıyor..." : "Tüm Talepleri Dışa Aktar"}
                   </Button>
                 </div>
               </CardContent>

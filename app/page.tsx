@@ -21,6 +21,18 @@ interface DashboardStats {
 export default function HomePage() {
   const { user, loading } = useAuth();
   const router = useRouter();
+  
+  // Anne için özel motivasyon mesajları 💕
+  const motivationalMessages = [
+    "Fatmaaa, bi gelsene",
+    "Suat ve Kaan seni çok seviyor! 💕",
+    "Dünya'nın en iyi annesi burada çalışıyor! 💕",
+    "Akşama ne yiyoruz anne? 🍲",
+    "Dişçi olsaydın dişimize baktırırdık! Yazılımcı oldun sistem yaptırıyoruz! 😄",
+  ];
+
+  const [dailyMessage, setDailyMessage] = useState(motivationalMessages[0]);
+  
   const [stats, setStats] = useState<DashboardStats>({
     totalRequests: 0,
     totalRequesters: 0,
@@ -38,6 +50,13 @@ export default function HomePage() {
       router.push('/login');
     }
   }, [user, loading, router]);
+
+  useEffect(() => {
+    // Günlük motivasyon mesajını ayarla
+    const today = new Date().getDate();
+    const messageIndex = today % motivationalMessages.length;
+    setDailyMessage(motivationalMessages[messageIndex]);
+  }, []);
 
   useEffect(() => {
     if (user) {
@@ -142,7 +161,12 @@ export default function HomePage() {
       <div className="space-y-8">
         <div className="bg-gradient-to-r from-blue-600 to-purple-600 rounded-xl p-6 text-white">
           <h1 className="text-3xl sm:text-4xl font-bold mb-2">Safa Kütüphane Yönetim Sistemi</h1>
-          <p className="text-blue-100 text-lg">Hoş geldiniz! Sistem durumu ve son işlemler</p>
+          <p className="text-blue-100 text-lg mb-2">Hoş geldiniz! Sistem durumu ve son işlemler</p>
+          <div className="bg-white/20 rounded-lg p-3 mt-4">
+            <p className="text-yellow-200 font-medium text-lg flex items-center">
+              ✨ {dailyMessage}
+            </p>
+          </div>
         </div>
 
         {/* İstatistik Kartları */}
